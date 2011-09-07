@@ -1,0 +1,12 @@
+Index: tlslite/TLSConnection.py
+===================================================================
+--- tlslite/TLSConnection.py	(revision 99841)
++++ tlslite/TLSConnection.py	(working copy)
+@@ -912,6 +912,7 @@
+             self.session.srpUsername = srpUsername
+             self.session.clientCertChain = clientCertChain
+             self.session.serverCertChain = serverCertChain
++            self.session.serverRandom = serverRandom
+ 
+             #Calculate pending connection states
+             self._calcPendingStates(clientRandom, serverRandom,
