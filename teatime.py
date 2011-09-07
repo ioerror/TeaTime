@@ -8,6 +8,8 @@
 # Perhaps extend this beyond the weird TLS side channel/info leak with:
 #  Fetch remote HTTP date/time
 #  Fetch remote IP date/time
+#  Fetch TCP date/time
+#  Fetch ICMP date/time
 #
 # For TLS we want the first four bytes of the random value sent by the server
 # This is clasically the remote value of gmt_unix_time
