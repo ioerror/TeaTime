@@ -1,0 +1,5 @@
+TeaTime: TLS Estimates Accurate Timing Information More Entropically
+
+TeaTime guesses the remote system time based on information leaked
+from the remote SSL/TLS ServerHello message.
+
