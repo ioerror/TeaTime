@@ -63,6 +63,7 @@ def parse_args():
   parser.add_option( "-x", "--use-proxy", dest="use_proxy", action="store_true", default=False, help="use proxy (HTTP/HTTPS only)")
   parser.add_option( "-n", "--sntp", dest="probe_sntp", action="store_true", default=False, help="probe target's SNTP port")
   parser.add_option( "-N", "--sntp-port", type="int", default=123, dest="remote_sntp_port", help="set the target SNTP port")
+  parser.add_option( "-i", "--icmp", dest="icmp", action="store_true", default=False, help="probe target with ICMP")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
@@ -76,7 +77,6 @@ def parse_args():
   # http://en.wikipedia.org/wiki/ICMP_Timestamp
   # http://caia.swin.edu.au/cv/szander/cprobe/skew_probing.html
   #
-  # parser.add_option( "-i", "--icmp", dest="icmp", action="store_true", default=False, help="probe target with ICMP")
   # parser.add_option( "-I", "--tcp", dest="ip", action="store_true", default=False, help="probe target with TCP")
   #
   parser.add_option( "-v", "--verbose", dest="verbose", action="store_true", default=True, help="set phasers to verbose")
@@ -162,6 +162,11 @@ def sntp_time_fetcher(remote_host, remote_port):
     remote_long_time = 0.0
   return float(remote_long_time)
 
+def icmp_time_fetcher(remote_host):
+  # XXX Implement this
+  remote_long_time = 0.0
+  return float(remote_long_time)
+
 # This is a basic HTTPS client time fetcher
 def https_time_fetcher(remote_host, remote_port):
   h = HTTPTLSConnection(remote_host, remote_port)
@@ -210,5 +215,11 @@ if options.probe_http:
 if options.probe_sntp and options.use_proxy == False:
   remote_sntp_time = sntp_time_fetcher(options.remote_host, options.remote_sntp_port)
   print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_sntp_time)
+  print "asctime() says: " + str(time.ctime(remote_sntp_time))
+
+# This can't ever work with a proxy
+if options.probe_icmp and options.use_proxy == False:
+  remote_icmp_time = icmp_time_fetcher(options.remote_host)
+  print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_icmp_time)
   print "asctime() says: " + str(time.ctime(remote_sntp_time))
 
