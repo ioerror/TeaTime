@@ -4,6 +4,8 @@
 # by Jacob Appelbaum <jacob@appelbaum.net>
 #
 # TODO:
+#  TLS/SSL session resumption timing even without a valid session
+#  Proxy support (SOCKS5 and HTTP Connect)
 #  Perhaps extend this beyond the weird TLS side channel/info leak with:
 #  Fetch remote IP date/time
 #  Fetch TCP date/time
@@ -27,10 +29,14 @@
 
 from socket import *
 from tlslite.api import *
+import urllib2
 import time
 import struct
 import binascii
 from optparse import OptionParser
+
+# We'll pretend to be Torbuton's UA by default
+default_user_agent = "Mozilla/5.0 (Windows NT 6.1; rv:5.0) Gecko/20100101 Firefox/5.0"
 
 def parse_args():
   parser = OptionParser("usage: %prog [options]")
@@ -40,8 +46,24 @@ def parse_args():
   parser.add_option( "-T", "--tls-port", dest="remote_tls_port", type="int", default=443, help="set the target TLS port")
   parser.add_option( "-s", "--https", dest="probe_https", action="store_true", default=False, help="probe target's HTTPS port")
   parser.add_option( "-S", "--https-port", type="int", default=443, help="set the target HTTPS port")
-  # XXX Implement this sometime
-  #parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
+  parser.add_option( "-u", "--http", dest="probe_http", action="store_true", default=False, help="probe target's HTTP port")
+  parser.add_option( "-U", "--http-port", type="int", default=80, dest="remote_http_port", help="set the target HTTP port")
+  # XXX Implement these sometime:
+  #
+  # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
+  #
+  # Reserved for future implementation:
+  #
+  # parser.add_option( "-R", "--tls-resume-session", dest="tls_resume_session",
+  # action="store_true", default=False, help="attempt to resume TLS session
+  # with random session")
+  #
+  # http://en.wikipedia.org/wiki/ICMP_Timestamp
+  # http://caia.swin.edu.au/cv/szander/cprobe/skew_probing.html
+  #
+  # parser.add_option( "-i", "--icmp", dest="icmp", action="store_true", default=False, help="probe target with ICMP")
+  # parser.add_option( "-I", "--tcp", dest="ip", action="store_true", default=False, help="probe target with TCP")
+  #
   parser.add_option( "-v", "--verbose", dest="verbose", action="store_true", default=True, help="set phasers to verbose")
   (options, args) = parser.parse_args()
   return options, args
@@ -65,13 +87,23 @@ def https_time_fetcher(remote_host, remote_port):
   h = HTTPTLSConnection(remote_host, remote_port)
   h.request("GET", "")
   r  = h.getresponse()
-  http_date = r.getheader("date")
+  https_date = r.getheader("date")
+  return https_date
+
+# This is a basic HTTP client time fetcher
+def http_time_fetcher(remote_host, remote_port):
+  # This may not be the most optimal url but it should work well enough
+  remote_url = "http://" + remote_host + ":" + str(remote_port) + "/"
+  default_headers = { "User-Agent" : default_user_agent }
+  request = urllib2.Request(url=remote_url, headers=default_headers)
+  response = urllib2.urlopen(request)
+  http_date = response.headers.get("date")
   return http_date
 
 options, args = parse_args()
 local_time = time.time()
 if options.verbose:
-  print "We're checking the time by connecting to %s on port %s" % (options.remote_host, options.remote_port)
+  print "We're checking the time by connecting to %s" % (options.remote_host)
   print "We believe that the local time is : " + str(local_time)
   print "asctime() says: " + str(time.ctime(local_time))
 
@@ -82,4 +114,8 @@ if options.probe_tls:
 
 if options.probe_https:
   remote_https_time = https_time_fetcher(options.remote_host, options.remote_port)
-  print "The remote HTTPS system %s believes that HTTPTime is : %s" % (options.remote_host, remote_https_time)
+  print "The remote HTTPS system %s believes that HTTPSTime is : %s" % (options.remote_host, remote_https_time)
+
+if options.probe_http:
+  remote_http_time = http_time_fetcher(options.remote_host, options.remote_http_port)
+  print "The remote HTTP system %s believes that HTTPTime is : %s" % (options.remote_host, remote_http_time)
