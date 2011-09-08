@@ -6,7 +6,6 @@
 # TODO:
 # Basic argument parsing
 # Perhaps extend this beyond the weird TLS side channel/info leak with:
-#  Fetch remote HTTP date/time
 #  Fetch remote IP date/time
 #  Fetch TCP date/time
 #  Fetch ICMP date/time
@@ -72,10 +71,11 @@ print "asctime() says: " + str(time.ctime(float(remote_long_time)))
 print "We believe that the local time is : " + str(local_time)
 print "asctime() says: " + str(time.ctime(local_time))
 
-# This is the start of the HTTP client time fetcher
-#
-# h = HTTPTLSConnection(remote_host, remote_port)
-# h.request("GET", "")
-# r  = h.getresponse()
-# dir(r)
-# print r
+# This is a basic HTTPS client time fetcher
+
+h = HTTPTLSConnection(remote_host, remote_port)
+h.request("GET", "")
+r  = h.getresponse()
+http_date = r.getheader("date")
+print "Remote HTTPS service thinks the time is: " + http_date
+
