@@ -5,11 +5,12 @@
 #
 # TODO:
 #  TLS/SSL session resumption timing even without a valid session
-#  Proxy support (SOCKS5 and HTTP Connect)
+#
 #  Perhaps extend this beyond the weird TLS side channel/info leak with:
 #  Fetch remote IP date/time
 #  Fetch TCP date/time
 #  Fetch ICMP date/time
+#  Fetch remote FTP date/time with the old "put foo/dir foo" trick
 #
 # For TLS we want the first four bytes of the random value sent by the server
 # This is clasically the remote value of gmt_unix_time
@@ -37,6 +38,8 @@ from optparse import OptionParser
 
 # We'll pretend to be Torbuton's UA by default
 default_user_agent = "Mozilla/5.0 (Windows NT 6.1; rv:5.0) Gecko/20100101 Firefox/5.0"
+# We'll use privoxy or whatever local proxy is on 8118
+default_proxy = {'http': 'http://127.0.0.1:8118/'}
 
 def parse_args():
   parser = OptionParser("usage: %prog [options]")
@@ -48,6 +51,7 @@ def parse_args():
   parser.add_option( "-S", "--https-port", type="int", default=443, help="set the target HTTPS port")
   parser.add_option( "-u", "--http", dest="probe_http", action="store_true", default=False, help="probe target's HTTP port")
   parser.add_option( "-U", "--http-port", type="int", default=80, dest="remote_http_port", help="set the target HTTP port")
+  parser.add_option( "-x", "--use-proxy", dest="use_proxy", action="store_true", default=False, help="use proxy (HTTP/HTTPS only)")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
@@ -101,6 +105,12 @@ def http_time_fetcher(remote_host, remote_port):
   return http_date
 
 options, args = parse_args()
+if options.use_proxy:
+  urllib2.ProxyHandler(default_proxy)
+else:
+  # No proxy
+  urllib2.ProxyHandler({"":""})
+
 local_time = time.time()
 if options.verbose:
   print "We're checking the time by connecting to %s" % (options.remote_host)
