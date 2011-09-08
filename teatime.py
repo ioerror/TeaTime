@@ -100,7 +100,7 @@ def start_tls_xmpp_time_fetcher(remote_host, remote_port):
   # read until /stream:features for urn:ietf:params:xml:ns:xmpp-tls
   # if we find <proceed, we're good
   # StartTLS here and then parse connection.session.serverRandom
-  float remote_long_time = 0.0
+  remote_long_time = 0.0
   return float(remote_long_time)
 
 def start_tls_pop3_time_fetcher(remote_host, remote_port):
@@ -108,7 +108,7 @@ def start_tls_pop3_time_fetcher(remote_host, remote_port):
   # "STLS\r\n"
   # read from the socket and if we see "+OK" - we're golden
   #  StartTLS here and then parse connection.session.serverRandom
-  float remote_long_time = 0.0
+  remote_long_time = 0.0
   return float(remote_long_time)
 
 def start_tls_imap_time_fetcher(remote_host, remote_port):
@@ -116,7 +116,7 @@ def start_tls_imap_time_fetcher(remote_host, remote_port):
   # ". STARTTLS\r\n"
   # read from the socket and if we see ". OK" - we're good to go
   #  StartTLS here and then parse connection.session.serverRandom
-  float remote_long_time = 0.0
+  remote_long_time = 0.0
   return float(remote_long_time)
 
 def start_tls_ftp_time_fetcher(remote_host, remote_port):
@@ -124,7 +124,7 @@ def start_tls_ftp_time_fetcher(remote_host, remote_port):
   # "AUTH TLS\r\n"
   # read from the socket and look for "234 AUTH TLS successful"
   #  StartTLS here and then parse connection.session.serverRandom
-  float remote_long_time = 0.0
+  remote_long_time = 0.0
   return float(remote_long_time)
 
 def start_tls_smtp_time_fetcher(remote_host, remote_port):
@@ -133,7 +133,7 @@ def start_tls_smtp_time_fetcher(remote_host, remote_port):
   # read from the socket and look for "250" and then write "STARTTLS\r\n"
   # If we see a "220" - we're good to go.
   #  StartTLS here and then parse connection.session.serverRandom
-  float remote_long_time = 0.0
+  remote_long_time = 0.0
   return float(remote_long_time)
 
 # This is a basic HTTPS client time fetcher
