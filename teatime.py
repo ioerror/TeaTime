@@ -4,8 +4,7 @@
 # by Jacob Appelbaum <jacob@appelbaum.net>
 #
 # TODO:
-# Basic argument parsing
-# Perhaps extend this beyond the weird TLS side channel/info leak with:
+#  Perhaps extend this beyond the weird TLS side channel/info leak with:
 #  Fetch remote IP date/time
 #  Fetch TCP date/time
 #  Fetch ICMP date/time
@@ -31,10 +30,21 @@ from tlslite.api import *
 import time
 import struct
 import binascii
+from optparse import OptionParser
 
-remote_host = "www.torproject.org"
-remote_port = 443
-local_time = time.time()
+def parse_args():
+  parser = OptionParser("usage: %prog [options]")
+  parser.add_option( "-r", "--remotehost", dest="remote_host", type="string", default="www.torproject.org", help="set the remote hostname")
+  parser.add_option( "-p", "--port", dest="remote_port", type="int", default=443, help="set the target port")
+  parser.add_option( "-t", "--tls", dest="probe_tls", action="store_false", default=True, help="probe target's TLS port")
+  parser.add_option( "-T", "--tls-port", dest="remote_tls_port", type="int", default=443, help="set the target TLS port")
+  parser.add_option( "-s", "--https", dest="probe_https", action="store_true", default=False, help="probe target's HTTPS port")
+  parser.add_option( "-S", "--https-port", type="int", default=443, help="set the target HTTPS port")
+  # XXX Implement this sometime
+  #parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
+  parser.add_option( "-v", "--verbose", dest="verbose", action="store_true", default=True, help="set phasers to verbose")
+  (options, args) = parser.parse_args()
+  return options, args
 
 # This is a basic TLS connection that validates certs
 # You MUST have a patched handshakeClientCert()
@@ -58,12 +68,18 @@ def https_time_fetcher(remote_host, remote_port):
   http_date = r.getheader("date")
   return http_date
 
-remote_tls_time = tls_time_fetcher(remote_host, remote_port)
-remote_https_time = https_time_fetcher(remote_host, remote_port)
+options, args = parse_args()
+local_time = time.time()
+if options.verbose:
+  print "We're checking the time by connecting to %s on port %s" % (options.remote_host, options.remote_port)
+  print "We believe that the local time is : " + str(local_time)
+  print "asctime() says: " + str(time.ctime(local_time))
 
-print "The remote system believes that TeaTime is : " + str(remote_tls_time)
-print "asctime() says: " + str(time.ctime(remote_tls_time))
-print "We believe that the local time is : " + str(local_time)
-print "asctime() says: " + str(time.ctime(local_time))
-print "Remote HTTPS service thinks the time is: " + str(remote_https_time)
+if options.probe_tls:
+  remote_tls_time = tls_time_fetcher(options.remote_host, options.remote_port)
+  print "The remote system %s believes that TeaTime is : %s" % (options.remote_host, remote_tls_time)
+  print "asctime() says: " + str(time.ctime(remote_tls_time))
 
+if options.probe_https:
+  remote_https_time = https_time_fetcher(options.remote_host, options.remote_port)
+  print "The remote HTTPS system %s believes that HTTPTime is : %s" % (options.remote_host, remote_https_time)
