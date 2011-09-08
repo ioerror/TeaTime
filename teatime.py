@@ -13,7 +13,6 @@
 #  Fetch TCP date/time
 #  Fetch ICMP date/time
 #  Fetch remote FTP date/time with the old "put foo/dir foo" trick
-#  Fetch SNTP ( RFC 2030 )
 #  Fetch SMTP banner
 #  STARTTLS for various protocols (most need TLS for auth)
 #  Daytime
@@ -46,6 +45,10 @@ from optparse import OptionParser
 default_user_agent = "Mozilla/5.0 (Windows NT 6.1; rv:5.0) Gecko/20100101 Firefox/5.0"
 # We'll use privoxy or whatever local proxy is on 8118
 default_proxy = {'http': 'http://127.0.0.1:8118/'}
+# Someone might have a different sense of the beginning of time...?
+default_epoch = 2208988800L
+# RFC2030 has other defaults but this one is ours
+default_sntp_recv_bytes = 48
 
 def parse_args():
   parser = OptionParser("usage: %prog [options]")
@@ -59,7 +62,7 @@ def parse_args():
   parser.add_option( "-U", "--http-port", type="int", default=80, dest="remote_http_port", help="set the target HTTP port")
   parser.add_option( "-x", "--use-proxy", dest="use_proxy", action="store_true", default=False, help="use proxy (HTTP/HTTPS only)")
   parser.add_option( "-n", "--sntp", dest="probe_sntp", action="store_true", default=False, help="probe target's SNTP port")
-  parser.add_option( "-N", "--sntp-port", type="int", default=123, help="set the target SNTP port")
+  parser.add_option( "-N", "--sntp-port", type="int", default=123, dest="remote_sntp_port", help="set the target SNTP port")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
@@ -138,8 +141,25 @@ def start_tls_smtp_time_fetcher(remote_host, remote_port):
   remote_long_time = 0.0
   return float(remote_long_time)
 
+# This implements the most basic SNTP client possible ( RFC 2030 )
+# THIS IS NOT PROXY SAFE IT USES *UDP* AND IT LEAKS DNS
 def sntp_time_fetcher(remote_host, remote_port):
-  # This is where sntp goes
+  remote_long_time = 0.0
+  server_response = ""
+  remote_ip = gethostbyname(remote_host)
+  sock = socket(AF_INET, SOCK_DGRAM)
+  sock.settimeout(10)
+  sntp_request = "\x1b" + 47 * '\0'
+  sock.sendto(sntp_request, (remote_ip, remote_port))
+  server_response, address = sock.recvfrom(default_sntp_recv_bytes)
+  sock.close()
+  if server_response:
+    # network order, unsigned int
+    remote_time = struct.unpack( '!12I', server_response)[10]
+    remote_time -= default_epoch
+    remote_long_time = remote_time
+  else:
+    remote_long_time = 0.0
   return float(remote_long_time)
 
 # This is a basic HTTPS client time fetcher

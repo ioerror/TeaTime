@@ -7,3 +7,7 @@ Example usage:
 
   teatime.py -u -s -v -x -r secwiki.org
 
+Example with TLS and SNTP:
+
+  teatime.py -n -r pool.ntp.org
+
