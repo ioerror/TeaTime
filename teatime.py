@@ -58,6 +58,8 @@ def parse_args():
   parser.add_option( "-u", "--http", dest="probe_http", action="store_true", default=False, help="probe target's HTTP port")
   parser.add_option( "-U", "--http-port", type="int", default=80, dest="remote_http_port", help="set the target HTTP port")
   parser.add_option( "-x", "--use-proxy", dest="use_proxy", action="store_true", default=False, help="use proxy (HTTP/HTTPS only)")
+  parser.add_option( "-n", "--sntp", dest="probe_sntp", action="store_true", default=False, help="probe target's SNTP port")
+  parser.add_option( "-N", "--sntp-port", type="int", default=123, help="set the target SNTP port")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
@@ -136,6 +138,10 @@ def start_tls_smtp_time_fetcher(remote_host, remote_port):
   remote_long_time = 0.0
   return float(remote_long_time)
 
+def sntp_time_fetcher(remote_host, remote_port):
+  # This is where sntp goes
+  return float(remote_long_time)
+
 # This is a basic HTTPS client time fetcher
 def https_time_fetcher(remote_host, remote_port):
   h = HTTPTLSConnection(remote_host, remote_port)
@@ -179,3 +185,10 @@ if options.probe_https:
 if options.probe_http:
   remote_http_time = http_time_fetcher(options.remote_host, options.remote_http_port)
   print "The remote HTTP system %s believes that HTTPTime is : %s" % (options.remote_host, remote_http_time)
+
+# This can't ever work with a proxy
+if options.probe_sntp and options.use_proxy == False:
+  remote_sntp_time = sntp_time_fetcher(options.remote_host, options.remote_sntp_port)
+  print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_sntp_time)
+  print "asctime() says: " + str(time.ctime(remote_sntp_time))
+
