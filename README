@@ -3,3 +3,7 @@ TeaTime: TLS Estimates Accurate Timing Information More Entropically
 TeaTime guesses the remote system time based on information leaked
 from the remote SSL/TLS ServerHello message.
 
+Example usage:
+
+  teatime.py -u -s -v -x -r secwiki.org
+
