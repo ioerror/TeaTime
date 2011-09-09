@@ -226,41 +226,41 @@ for x in xrange(options.num_of_tries):
     print "We're checking the time by connecting to %s" % (options.remote_host)
     print "This is run number: %i of %i" % (x, options.num_of_tries)
     print "We believe that the local time is : " + str(local_time)
-    print "asctime() says: " + str(time.ctime(local_time))
+    print "asctime() says: " + str(time.ctime(local_time)) + " (" + str(time.time()) + ")"
 
   if options.probe_tls:
-    print "current time before TLS probe: " + str(time.ctime(time.time()))
+    print "time before TLS probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     remote_tls_time = tls_time_fetcher(options.remote_host, options.remote_port)
+    print "time after TLS probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     print "The remote system %s believes that TeaTime is : %s" % (options.remote_host, remote_tls_time)
     print "asctime() says: " + str(time.ctime(remote_tls_time))
-    print "current time after TLS probe: " + str(time.ctime(time.time()))
 
   if options.probe_https:
-    print "current time before HTTPS probe: " + str(time.ctime(time.time()))
+    print "time before HTTPS probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     remote_https_time = https_time_fetcher(options.remote_host, options.remote_port)
+    print "time after HTTPS probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     print "The remote HTTPS system %s believes that HTTPSTime is : %s" % (options.remote_host, remote_https_time)
-    print "current time after HTTPS probe: " + str(time.ctime(time.time()))
 
   if options.probe_http:
-    print "current time before HTTP probe: " + str(time.ctime(time.time()))
+    print "time before HTTP probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     remote_http_time = http_time_fetcher(options.remote_host, options.remote_http_port)
+    print "time after HTTP probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     print "The remote HTTP system %s believes that HTTPTime is : %s" % (options.remote_host, remote_http_time)
-    print "current time after HTTP probe: " + str(time.ctime(time.time()))
 
   # This can't ever work with a proxy
   if options.probe_sntp and options.use_proxy == False:
-    print "current time before SNTP probe: " + str(time.ctime(time.time()))
+    print "time before SNTP probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     remote_sntp_time = sntp_time_fetcher(options.remote_host, options.remote_sntp_port)
+    print "time after SNTP probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_sntp_time)
     print "asctime() says: " + str(time.ctime(remote_sntp_time))
-    print "current time after SNTP probe: " + str(time.ctime(time.time()))
 
   # This can't ever work with a proxy
   if options.probe_icmp and options.use_proxy == False:
-    print "current time before ICMP probe: " + str(time.ctime(time.time()))
+    print "time before ICMP probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     remote_icmp_time = icmp_time_fetcher(options.remote_host)
+    print "time after ICMP probe: " + str(time.ctime(time.time())) + " (" + str(time.time()) + ")"
     # ICMP does not actually return unixtime, but rather "time since midnight UTC" 
     print "The remote system %s believes that ICMPTime (seconds today in UTC) is : %s" % (options.remote_host, remote_icmp_time)
     print "asctime() says: " + str(time.ctime(remote_icmp_time))
-    print "current time after ICMP probe: " + str(time.ctime(time.time()))
 
