@@ -7,7 +7,25 @@ Example usage:
 
   teatime.py -u -s -v -x -r secwiki.org
 
+  We're checking the time by connecting to secwiki.org
+  We believe that the local time is : 1315569627.7
+  asctime() says: Fri Sep  9 14:00:27 2011
+  The remote system secwiki.org believes that TeaTime is : 1315569632.0
+  asctime() says: Fri Sep  9 14:00:32 2011
+  The remote HTTPS system secwiki.org believes that HTTPSTime is : Fri, 09 Sep
+  2011 12:00:33 GMT
+  The remote HTTP system secwiki.org believes that HTTPTime is : Fri, 09 Sep 2011
+  12:00:37 GMT
+
 Example with TLS and SNTP:
 
-  teatime.py -n -r pool.ntp.org
+  teatime.py -n -v -r pool.ntp.org
+
+  We're checking the time by connecting to pool.ntp.org
+  We believe that the local time is : 1315569583.28
+  asctime() says: Fri Sep  9 13:59:43 2011
+  The remote system pool.ntp.org believes that TeaTime is : 1315569587.0
+  asctime() says: Fri Sep  9 13:59:47 2011
+  The remote system pool.ntp.org believes that SNTP is : 1315569587.0
+  asctime() says: Fri Sep  9 13:59:47 2011
 

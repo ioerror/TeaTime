@@ -49,6 +49,8 @@ default_proxy = {'http': 'http://127.0.0.1:8118/'}
 default_epoch = 2208988800L
 # RFC2030 has other defaults but this one is ours
 default_sntp_recv_bytes = 48
+# Default socket timeout
+default_socket_timeout = 10
 
 def parse_args():
   parser = OptionParser("usage: %prog [options]")
@@ -89,7 +91,7 @@ def parse_args():
 def tls_time_fetcher(remote_host, remote_port):
   sock = socket(AF_INET, SOCK_STREAM)
   sock.connect( (remote_host, remote_port))
-  sock.settimeout(5)
+  sock.settimeout(default_socket_timeout)
   connection = TLSConnection(sock)
   connection.handshakeClientCert()
   connection.close()
@@ -148,14 +150,15 @@ def sntp_time_fetcher(remote_host, remote_port):
   server_response = ""
   remote_ip = gethostbyname(remote_host)
   sock = socket(AF_INET, SOCK_DGRAM)
-  sock.settimeout(10)
+  sock.settimeout(default_socket_timeout)
   sntp_request = "\x1b" + 47 * '\0'
-  sock.sendto(sntp_request, (remote_ip, remote_port))
+  bytes_sent = sock.sendto(sntp_request, (remote_ip, remote_port))
   server_response, address = sock.recvfrom(default_sntp_recv_bytes)
   sock.close()
-  if server_response:
-    # network order, unsigned int
-    remote_time = struct.unpack( '!12I', server_response)[10]
+  if len(server_response) == 48:
+    # network order, unsigned int from the 40th to the 44th byte of the 48byte
+    # reply returned as as an int, not a tuple
+    remote_time = struct.unpack( '!1I', server_response[40:44])[0]
     remote_time -= default_epoch
     remote_long_time = remote_time
   else:
