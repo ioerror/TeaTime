@@ -63,7 +63,7 @@ def parse_args():
   parser.add_option( "-x", "--use-proxy", dest="use_proxy", action="store_true", default=False, help="use proxy (HTTP/HTTPS only)")
   parser.add_option( "-n", "--sntp", dest="probe_sntp", action="store_true", default=False, help="probe target's SNTP port")
   parser.add_option( "-N", "--sntp-port", type="int", default=123, dest="remote_sntp_port", help="set the target SNTP port")
-  parser.add_option( "-i", "--icmp", dest="icmp", action="store_true", default=False, help="probe target with ICMP")
+  parser.add_option( "-i", "--icmp", dest="probe_icmp", action="store_true", default=False, help="probe target with ICMP")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
@@ -162,9 +162,33 @@ def sntp_time_fetcher(remote_host, remote_port):
     remote_long_time = 0.0
   return float(remote_long_time)
 
+# This is a very basic ICMP Timestamp fetcher. It needs SOCK_RAW privileges.
+# Note that ICMP returns milliseconds since midnight UTC, not unixtime.
+# Based on a Python ping implementation by Pierre Bourdon and George Notaras
+# available at http://pypi.python.org/pypi/ping/0.1 (GPLv2)
 def icmp_time_fetcher(remote_host):
-  # XXX Implement this
   remote_long_time = 0.0
+  # ICMP Timestamp request packet;    type, code, chksum, id, seq, orig, rx, tx
+  request = struct.pack("bbHxbxbIII", 13,   0,    0xfdf2, 1,  1,   0,    0,  0)
+  try:
+    sock = socket(AF_INET, SOCK_RAW, getprotobyname("icmp"))
+  except error, (errno, msg):
+    # Operation not permitted?
+    if errno == 1: 
+      msg = msg + " - ICMP probes need SOCK_RAW privileges (are you root?)"
+      raise error(msg)
+    raise
+  sock.settimeout(10)
+  sock.sendto(request, (remote_host, 1))
+  recPacket, addr = sock.recvfrom(40)
+  sock.close()
+  payload = recPacket[24:40]
+  packetID, sequence, tx = struct.unpack("xbxbxxxxxxxxI", payload)
+  if packetID == sequence == 1:
+    # Convert milliseconds to seconds
+    remote_long_time = ntohl(tx)/1000.0
+  else:
+    remote_long_time = 0.0
   return float(remote_long_time)
 
 # This is a basic HTTPS client time fetcher
@@ -220,6 +244,7 @@ if options.probe_sntp and options.use_proxy == False:
 # This can't ever work with a proxy
 if options.probe_icmp and options.use_proxy == False:
   remote_icmp_time = icmp_time_fetcher(options.remote_host)
-  print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_icmp_time)
-  print "asctime() says: " + str(time.ctime(remote_sntp_time))
+  # ICMP does not actually return unixtime, but rather "time since midnight UTC" 
+  print "The remote system %s believes that ICMPTime (seconds today in UTC) is : %s" % (options.remote_host, remote_icmp_time)
+  print "asctime() says: " + str(time.ctime(remote_icmp_time))
 
