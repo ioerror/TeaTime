@@ -56,7 +56,7 @@ def parse_args():
   parser = OptionParser("usage: %prog [options]")
   parser.add_option( "-r", "--remotehost", dest="remote_host", type="string", default="www.torproject.org", help="set the remote hostname")
   parser.add_option( "-p", "--port", dest="remote_port", type="int", default=443, help="set the target port")
-  parser.add_option( "-t", "--tls", dest="probe_tls", action="store_false", default=True, help="probe target's TLS port")
+  parser.add_option( "-t", "--tls", dest="probe_tls", action="store_true", default=False, help="probe target's TLS port")
   parser.add_option( "-T", "--tls-port", dest="remote_tls_port", type="int", default=443, help="set the target TLS port")
   parser.add_option( "-s", "--https", dest="probe_https", action="store_true", default=False, help="probe target's HTTPS port")
   parser.add_option( "-S", "--https-port", type="int", default=443, help="set the target HTTPS port")
@@ -66,6 +66,7 @@ def parse_args():
   parser.add_option( "-n", "--sntp", dest="probe_sntp", action="store_true", default=False, help="probe target's SNTP port")
   parser.add_option( "-N", "--sntp-port", type="int", default=123, dest="remote_sntp_port", help="set the target SNTP port")
   parser.add_option( "-i", "--icmp", dest="probe_icmp", action="store_true", default=False, help="probe target with ICMP")
+  parser.add_option( "-z", "--zee-number-of-loops", type="int", default=1, dest="num_of_tries",help="probe target's HTTP port")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
@@ -219,35 +220,47 @@ else:
   # No proxy
   urllib2.ProxyHandler({"":""})
 
-local_time = time.time()
-if options.verbose:
-  print "We're checking the time by connecting to %s" % (options.remote_host)
-  print "We believe that the local time is : " + str(local_time)
-  print "asctime() says: " + str(time.ctime(local_time))
+for x in xrange(options.num_of_tries):
+  local_time = time.time()
+  if options.verbose:
+    print "We're checking the time by connecting to %s" % (options.remote_host)
+    print "This is run number: %i of %i" % (x, options.num_of_tries)
+    print "We believe that the local time is : " + str(local_time)
+    print "asctime() says: " + str(time.ctime(local_time))
 
-if options.probe_tls:
-  remote_tls_time = tls_time_fetcher(options.remote_host, options.remote_port)
-  print "The remote system %s believes that TeaTime is : %s" % (options.remote_host, remote_tls_time)
-  print "asctime() says: " + str(time.ctime(remote_tls_time))
+  if options.probe_tls:
+    print "current time:" + str(time.ctime(time.time()))
+    remote_tls_time = tls_time_fetcher(options.remote_host, options.remote_port)
+    print "The remote system %s believes that TeaTime is : %s" % (options.remote_host, remote_tls_time)
+    print "asctime() says: " + str(time.ctime(remote_tls_time))
+    print "current time:" + str(time.ctime(time.time()))
 
-if options.probe_https:
-  remote_https_time = https_time_fetcher(options.remote_host, options.remote_port)
-  print "The remote HTTPS system %s believes that HTTPSTime is : %s" % (options.remote_host, remote_https_time)
+  if options.probe_https:
+    print "current time:" + str(time.ctime(time.time()))
+    remote_https_time = https_time_fetcher(options.remote_host, options.remote_port)
+    print "The remote HTTPS system %s believes that HTTPSTime is : %s" % (options.remote_host, remote_https_time)
+    print "current time:" + str(time.ctime(time.time()))
 
-if options.probe_http:
-  remote_http_time = http_time_fetcher(options.remote_host, options.remote_http_port)
-  print "The remote HTTP system %s believes that HTTPTime is : %s" % (options.remote_host, remote_http_time)
+  if options.probe_http:
+    print "current time:" + str(time.ctime(time.time()))
+    remote_http_time = http_time_fetcher(options.remote_host, options.remote_http_port)
+    print "The remote HTTP system %s believes that HTTPTime is : %s" % (options.remote_host, remote_http_time)
+    print "current time:" + str(time.ctime(time.time()))
 
-# This can't ever work with a proxy
-if options.probe_sntp and options.use_proxy == False:
-  remote_sntp_time = sntp_time_fetcher(options.remote_host, options.remote_sntp_port)
-  print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_sntp_time)
-  print "asctime() says: " + str(time.ctime(remote_sntp_time))
+  # This can't ever work with a proxy
+  if options.probe_sntp and options.use_proxy == False:
+    print "current time:" + str(time.ctime(time.time()))
+    remote_sntp_time = sntp_time_fetcher(options.remote_host, options.remote_sntp_port)
+    print "The remote system %s believes that SNTP is : %s" % (options.remote_host, remote_sntp_time)
+    print "asctime() says: " + str(time.ctime(remote_sntp_time))
+    print "current time:" + str(time.ctime(time.time()))
 
-# This can't ever work with a proxy
-if options.probe_icmp and options.use_proxy == False:
-  remote_icmp_time = icmp_time_fetcher(options.remote_host)
-  # ICMP does not actually return unixtime, but rather "time since midnight UTC" 
-  print "The remote system %s believes that ICMPTime (seconds today in UTC) is : %s" % (options.remote_host, remote_icmp_time)
-  print "asctime() says: " + str(time.ctime(remote_icmp_time))
+  # This can't ever work with a proxy
+  if options.probe_icmp and options.use_proxy == False:
+    print "current time:" + str(time.ctime(time.time()))
+    remote_icmp_time = icmp_time_fetcher(options.remote_host)
+    # ICMP does not actually return unixtime, but rather "time since midnight UTC" 
+    print "The remote system %s believes that ICMPTime (seconds today in UTC) is : %s" % (options.remote_host, remote_icmp_time)
+    print "asctime() says: " + str(time.ctime(remote_icmp_time))
+    print "current time:" + str(time.ctime(time.time()))
 
