@@ -11,7 +11,6 @@
 #  Perhaps extend this beyond the weird TLS side channel/info leak with:
 #  Fetch remote IP date/time
 #  Fetch TCP date/time
-#  Fetch ICMP date/time
 #  Fetch remote FTP date/time with the old "put foo/dir foo" trick
 #  Fetch SMTP banner
 #  STARTTLS for various protocols (most need TLS for auth)
@@ -66,7 +65,7 @@ def parse_args():
   parser.add_option( "-n", "--sntp", dest="probe_sntp", action="store_true", default=False, help="probe target's SNTP port")
   parser.add_option( "-N", "--sntp-port", type="int", default=123, dest="remote_sntp_port", help="set the target SNTP port")
   parser.add_option( "-i", "--icmp", dest="probe_icmp", action="store_true", default=False, help="probe target with ICMP")
-  parser.add_option( "-z", "--zee-number-of-loops", type="int", default=1, dest="num_of_tries",help="probe target's HTTP port")
+  parser.add_option( "-z", "--zee-number-of-loops", type="int", default=1, dest="num_of_tries",help="number of times to run selected tests (default: 1)")
   # XXX Implement these sometime:
   #
   # parser.add_option( "-n", "--no-validation", dest="validation", action="store_true", default=False, help="disable certificate validation")
