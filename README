@@ -3,6 +3,14 @@ TeaTime: TLS Estimates Accurate Timing Information More Entropically
 TeaTime guesses the remote system time based on information leaked
 from the remote SSL/TLS ServerHello message.
 
+Additionally this tool is an example of Time Agility - inspired by Moxie's
+Trust Agility concept and terminology.
+
+Time Agility is the idea that all sources of time are biased, false tickers,
+or worse - perhaps even bad actors entirely. Time Agility allows us to switch
+our time source easily and to use a multitude of sources together to better
+estimate the actual time.
+
 Example usage:
 
   teatime.py -u -s -v -x -r secwiki.org
